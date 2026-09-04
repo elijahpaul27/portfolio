@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 import BackgroundParallax from './components/BackgroundParallax';
@@ -110,45 +110,49 @@ function PanelHeader({ label, color = 'var(--color-teal)', children }) {
    MAIN APP COMPONENT
    ============================================================== */
 export default function App() {
-  /* ── Flowise injection boilerplate ── */
+  /* ── Flowise Chat Interface State ── */
+  const [chatHistory, setChatHistory] = useState([]);
+  const [inputQuery, setInputQuery] = useState('');
+  const [isTransmitting, setIsTransmitting] = useState(false);
+  const chatScrollRef = useRef(null);
+
+  /* ── Auto-scroll to bottom of chat ── */
   useEffect(() => {
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
-    script.onload = () => {
-      if (window.Chatbot) {
-        window.Chatbot.init({
-          chatflowid: 'YOUR_CHATFLOW_ID',
-          apiHost: 'YOUR_FLOWISE_API_HOST',
-          chatflowConfig: {},
-          theme: {
-            button: { backgroundColor: '#06D6A0', iconColor: '#081018' },
-            chatWindow: {
-              showTitle: true,
-              title: 'AI SUPPORT UPLINK',
-              titleAvatarSrc: '',
-              welcomeMessage: 'SYSTEM ONLINE. How can I assist you, Operator?',
-              backgroundColor: '#040a04',
-              fontSize: 14,
-              botMessage: { backgroundColor: '#0a120a', textColor: '#06D6A0', showAvatar: false },
-              userMessage: { backgroundColor: '#118AB2', textColor: '#081018', showAvatar: false },
-              textInput: {
-                backgroundColor: '#040a04',
-                textColor: '#06D6A0',
-                placeholder: '> enter query...',
-                sendButtonColor: '#06D6A0',
-              },
-            },
-          },
-        });
-      }
-    };
-    // ⚠ Uncomment to inject the real Flowise widget:
-    // document.body.appendChild(script);
-    return () => {
-      if (document.body.contains(script)) document.body.removeChild(script);
-    };
-  }, []);
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatHistory, isTransmitting]);
+
+  /* ── Handle Terminal Input Submission ── */
+  const handleQuerySubmit = async (e) => {
+    e.preventDefault();
+    if (!inputQuery.trim() || isTransmitting) return;
+
+    const userMessage = inputQuery.trim();
+    setInputQuery('');
+    setChatHistory(prev => [...prev, { role: 'USER', text: userMessage }]);
+    setIsTransmitting(true);
+
+    try {
+      const response = await fetch(
+        `https://cloud.flowiseai.com/api/v1/prediction/${import.meta.env.VITE_FLOWISE_CHATFLOW_ID}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: userMessage }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Uplink handshake failed.');
+
+      const data = await response.json();
+      setChatHistory(prev => [...prev, { role: 'UPLINK', text: data.text }]);
+    } catch (error) {
+      setChatHistory(prev => [...prev, { role: 'SYSTEM', text: `[ERROR]: ${error.message}` }]);
+    } finally {
+      setIsTransmitting(false);
+    }
+  };
 
   /* ── Scroll-driven hero content opacity ── */
   const { scrollY } = useScroll();
@@ -514,15 +518,25 @@ export default function App() {
                 id="uplink"
               >
                 <PanelHeader label="AI Support Uplink" color="var(--color-mint)">
-                  <StatusDot color="mint" />
+                  <StatusDot color={isTransmitting ? 'coral' : 'mint'} />
                 </PanelHeader>
-                <div className="terminal-container flex-grow p-5 flex flex-col min-h-[300px]">
-                  <div className="flex-grow overflow-y-auto relative z-10" style={{ fontSize: '15px' }}>
+                <div className="terminal-container flex-grow p-5 flex flex-col min-h-[400px]">
+                  
+                  {/* Chat History Display */}
+                  <div 
+                    ref={chatScrollRef}
+                    className="flex-grow overflow-y-auto relative z-10 pr-2 custom-scrollbar" 
+                    style={{ fontSize: '14px', scrollBehavior: 'smooth' }}
+                  >
                     <div className="text-mint opacity-50 mb-3">
-                      ┌──────────────────────────────────────┐
+                      ┌──────────────────────────────────────┐<br/>
+                      │ FLOWISE SECURE PREDICTION ENDPOINT   │<br/>
+                      └──────────────────────────────────────┘
                     </div>
+                    
+                    {/* Boot Logs */}
                     {terminalLines.map((line, i) => (
-                      <div key={i} className={`${line.dim ? 'opacity-40' : 'opacity-90'} ${line.text === '' ? 'h-3' : ''}`}>
+                      <div key={i} className={`${line.dim ? 'opacity-40' : 'opacity-90'} ${line.text === '' ? 'h-3' : 'mb-1'}`}>
                         {line.text && (
                           <>
                             <span className="text-teal mr-2">{'>'}</span>
@@ -531,16 +545,53 @@ export default function App() {
                         )}
                       </div>
                     ))}
-                    {terminalLines.length >= 6 && (
-                      <div className="mt-4 flex items-center">
-                        <span className="text-coral mr-2">{'>'}</span>
-                        <span className="animate-blink">█</span>
+
+                    {/* Chat Logs */}
+                    {chatHistory.map((msg, i) => (
+                      <div key={i} className={`mt-3 ${msg.role === 'USER' ? 'text-teal' : msg.role === 'SYSTEM' ? 'text-coral' : 'text-mint'}`}>
+                        <span className="opacity-50 mr-2">[{msg.role}]</span>
+                        <span className={msg.role === 'USER' ? 'opacity-90' : 'opacity-100'}>{msg.text}</span>
+                      </div>
+                    ))}
+
+                    {/* Loading State */}
+                    {isTransmitting && (
+                      <div className="mt-3 text-coral opacity-80 animate-pulse">
+                        <span className="opacity-50 mr-2">[SYSTEM]</span>
+                        {'> [TRANSMITTING]...'}
                       </div>
                     )}
+                    
+                    {/* Spacer for bottom padding */}
+                    <div className="h-4"></div>
                   </div>
-                  <div className="border-t border-mint/20 pt-3 mt-4 text-[11px] font-fira opacity-40 relative z-10">
-                    Flowise RAG endpoint ready. See App.jsx to activate live chatbot widget.
-                  </div>
+
+                  {/* Input Form */}
+                  <form 
+                    onSubmit={handleQuerySubmit} 
+                    className="border-t border-mint/30 pt-3 mt-4 relative z-10 flex items-center gap-2"
+                  >
+                    <span className="text-teal">{'>'}</span>
+                    <input
+                      type="text"
+                      value={inputQuery}
+                      onChange={(e) => setInputQuery(e.target.value)}
+                      disabled={isTransmitting || terminalLines.length < 6}
+                      placeholder="enter query..."
+                      className="flex-grow bg-transparent border-none outline-none text-mint placeholder:text-mint/30 font-fira disabled:opacity-50"
+                      autoComplete="off"
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={isTransmitting || !inputQuery.trim() || terminalLines.length < 6}
+                      className="text-mint hover:text-teal disabled:opacity-30 transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                      </svg>
+                    </button>
+                  </form>
                 </div>
               </MotionCard>
 
