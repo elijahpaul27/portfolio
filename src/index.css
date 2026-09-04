@@ -1,0 +1,431 @@
+@import "tailwindcss";
+
+@theme {
+  --font-space: 'Space Mono', monospace;
+  --font-fira: 'Fira Code', monospace;
+  --font-vt: 'VT323', monospace;
+
+  --color-base: #081018;
+  --color-base-light: #0e1a24;
+  --color-base-lighter: #142230;
+
+  --color-coral: #FF7F50;
+  --color-gold: #FFD166;
+  --color-mint: #06D6A0;
+  --color-teal: #118AB2;
+
+  --color-text-primary: #E0E8F0;
+  --color-text-muted: #6B7A8D;
+  --color-text-dim: #3A4A5A;
+
+  --color-border: #1A2A38;
+  --color-border-active: #2A3A4A;
+}
+
+/* ======================================================
+   BASE LAYER
+   ====================================================== */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-space);
+    background-color: var(--color-base);
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-teal);
+    color: var(--color-base);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-base);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-active);
+    border: 1px solid var(--color-border);
+  }
+}
+
+/* ======================================================
+   COMPONENT LAYER — Retrofuturistic Design System
+   ====================================================== */
+@layer components {
+
+  /* --- CRT Scanline Overlay --- */
+  .crt-overlay {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.06) 0px,
+      rgba(0, 0, 0, 0.06) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: multiply;
+  }
+
+  /* --- Ambient glow behind page (vignette) --- */
+  .vignette {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9998;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 50%,
+      rgba(0, 0, 0, 0.5) 100%
+    );
+  }
+
+  /* --- Dashboard Panel --- */
+  .retro-panel {
+    background-color: var(--color-base-light);
+    border: 2px solid var(--color-border);
+    position: relative;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .retro-panel:hover {
+    border-color: var(--color-border-active);
+  }
+
+  /* --- Panel with colored glow --- */
+  .retro-panel-glow-coral {
+    box-shadow: 0 0 15px rgba(255, 127, 80, 0.08), inset 0 0 30px rgba(255, 127, 80, 0.03);
+    border-color: rgba(255, 127, 80, 0.25);
+  }
+  .retro-panel-glow-coral:hover {
+    box-shadow: 0 0 25px rgba(255, 127, 80, 0.15), inset 0 0 40px rgba(255, 127, 80, 0.05);
+    border-color: rgba(255, 127, 80, 0.4);
+  }
+
+  .retro-panel-glow-teal {
+    box-shadow: 0 0 15px rgba(17, 138, 178, 0.08), inset 0 0 30px rgba(17, 138, 178, 0.03);
+    border-color: rgba(17, 138, 178, 0.25);
+  }
+  .retro-panel-glow-teal:hover {
+    box-shadow: 0 0 25px rgba(17, 138, 178, 0.15), inset 0 0 40px rgba(17, 138, 178, 0.05);
+    border-color: rgba(17, 138, 178, 0.4);
+  }
+
+  .retro-panel-glow-gold {
+    box-shadow: 0 0 15px rgba(255, 209, 102, 0.08), inset 0 0 30px rgba(255, 209, 102, 0.03);
+    border-color: rgba(255, 209, 102, 0.25);
+  }
+  .retro-panel-glow-gold:hover {
+    box-shadow: 0 0 25px rgba(255, 209, 102, 0.15), inset 0 0 40px rgba(255, 209, 102, 0.05);
+    border-color: rgba(255, 209, 102, 0.4);
+  }
+
+  .retro-panel-glow-mint {
+    box-shadow: 0 0 15px rgba(6, 214, 160, 0.08), inset 0 0 30px rgba(6, 214, 160, 0.03);
+    border-color: rgba(6, 214, 160, 0.25);
+  }
+  .retro-panel-glow-mint:hover {
+    box-shadow: 0 0 25px rgba(6, 214, 160, 0.15), inset 0 0 40px rgba(6, 214, 160, 0.05);
+    border-color: rgba(6, 214, 160, 0.4);
+  }
+
+  /* --- Section Header Bar --- */
+  .retro-header {
+    font-family: var(--font-fira);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 11px;
+    padding: 10px 16px;
+    border-bottom: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* --- Buttons --- */
+  .retro-btn {
+    font-family: var(--font-fira);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 8px 18px;
+    border: 2px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+  }
+  .retro-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+    transition: left 0.4s ease;
+  }
+  .retro-btn:hover::before {
+    left: 100%;
+  }
+
+  .retro-btn-coral {
+    color: var(--color-coral);
+    border-color: var(--color-coral);
+  }
+  .retro-btn-coral:hover {
+    background-color: var(--color-coral);
+    color: var(--color-base);
+    box-shadow: 0 0 20px rgba(255, 127, 80, 0.3);
+  }
+
+  .retro-btn-teal {
+    color: var(--color-teal);
+    border-color: var(--color-teal);
+  }
+  .retro-btn-teal:hover {
+    background-color: var(--color-teal);
+    color: var(--color-base);
+    box-shadow: 0 0 20px rgba(17, 138, 178, 0.3);
+  }
+
+  .retro-btn-gold {
+    color: var(--color-gold);
+    border-color: var(--color-gold);
+  }
+  .retro-btn-gold:hover {
+    background-color: var(--color-gold);
+    color: var(--color-base);
+    box-shadow: 0 0 20px rgba(255, 209, 102, 0.3);
+  }
+
+  .retro-btn-mint {
+    color: var(--color-mint);
+    border-color: var(--color-mint);
+  }
+  .retro-btn-mint:hover {
+    background-color: var(--color-mint);
+    color: var(--color-base);
+    box-shadow: 0 0 20px rgba(6, 214, 160, 0.3);
+  }
+
+  /* --- Navigation Link --- */
+  .retro-nav-link {
+    font-family: var(--font-fira);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--color-text-muted);
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+  }
+  .retro-nav-link:hover {
+    color: var(--color-teal);
+    border-color: var(--color-teal);
+    text-shadow: 0 0 8px rgba(17, 138, 178, 0.5);
+  }
+  .retro-nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--color-teal);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+  }
+  .retro-nav-link:hover::after {
+    width: 60%;
+  }
+
+  /* --- Status Dot Indicator --- */
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  .status-dot-mint {
+    background-color: var(--color-mint);
+    box-shadow: 0 0 6px var(--color-mint);
+  }
+  .status-dot-coral {
+    background-color: var(--color-coral);
+    box-shadow: 0 0 6px var(--color-coral);
+  }
+
+  /* --- Terminal Container (for AI Chatbot) --- */
+  .terminal-container {
+    background-color: #040a04;
+    border: 2px solid rgba(6, 214, 160, 0.3);
+    font-family: var(--font-vt);
+    color: var(--color-mint);
+    font-size: 16px;
+    line-height: 1.5;
+    position: relative;
+    overflow: hidden;
+  }
+  .terminal-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(6, 214, 160, 0.015) 0px,
+      rgba(6, 214, 160, 0.015) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* --- Badge / Tag --- */
+  .retro-badge {
+    font-family: var(--font-fira);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 3px 8px;
+    border: 1px solid;
+    display: inline-block;
+  }
+
+  /* --- Timeline entry --- */
+  .timeline-entry {
+    position: relative;
+    padding-left: 24px;
+    border-left: 2px solid var(--color-border);
+  }
+  .timeline-entry::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 6px;
+    width: 8px;
+    height: 8px;
+    background: var(--color-teal);
+    box-shadow: 0 0 8px rgba(17, 138, 178, 0.4);
+  }
+
+  /* --- Flowise Chatbot CSS Overrides (retro-forced) --- */
+  flowise-chatbot,
+  flowise-fullchatbot,
+  #flowise-chat-bubble,
+  .flowise-chat-window {
+    --chatbot-bg: #040a04 !important;
+    --chatbot-text: var(--color-mint) !important;
+    border-radius: 0 !important;
+    font-family: var(--font-vt) !important;
+  }
+
+  flowise-chatbot *,
+  flowise-fullchatbot *,
+  .flowise-chat-window * {
+    border-radius: 0 !important;
+    font-family: var(--font-vt) !important;
+  }
+
+  .flowise-retro-overrides .chatbot-container,
+  .flowise-retro-overrides .chatbot-bubble,
+  .flowise-retro-overrides .chatbot-input,
+  .flowise-retro-overrides textarea,
+  .flowise-retro-overrides button {
+    border-radius: 0 !important;
+    background-color: #040a04 !important;
+    color: var(--color-mint) !important;
+    border-color: rgba(6, 214, 160, 0.3) !important;
+    font-family: var(--font-vt) !important;
+  }
+}
+
+/* ======================================================
+   UTILITY LAYER
+   ====================================================== */
+@layer utilities {
+  .text-glow-teal {
+    text-shadow: 0 0 8px rgba(17, 138, 178, 0.5), 0 0 20px rgba(17, 138, 178, 0.2);
+  }
+  .text-glow-coral {
+    text-shadow: 0 0 8px rgba(255, 127, 80, 0.5), 0 0 20px rgba(255, 127, 80, 0.2);
+  }
+  .text-glow-mint {
+    text-shadow: 0 0 8px rgba(6, 214, 160, 0.5), 0 0 20px rgba(6, 214, 160, 0.2);
+  }
+  .text-glow-gold {
+    text-shadow: 0 0 8px rgba(255, 209, 102, 0.5), 0 0 20px rgba(255, 209, 102, 0.2);
+  }
+}
+
+/* ======================================================
+   ANIMATIONS
+   ====================================================== */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes boot-flicker {
+  0% { opacity: 0; }
+  5% { opacity: 0.8; }
+  10% { opacity: 0.2; }
+  15% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.animate-blink {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+.animate-boot {
+  animation: boot-flicker 1.5s ease-out forwards;
+}
+
+/* ── Parallax Hero: Star twinkle ── */
+@keyframes starTwinkle {
+  0%   { filter: brightness(1) saturate(1); }
+  50%  { filter: brightness(1.15) saturate(1.2); }
+  100% { filter: brightness(1) saturate(1); }
+}

@@ -1,0 +1,575 @@
+import { useEffect, useState } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+
+import BackgroundParallax from './components/BackgroundParallax';
+import {
+  MotionCard,
+  MotionButton,
+  MotionNavLink,
+  MotionTimelineEntry,
+} from './components/MotionWrappers';
+
+import profileImg from './assets/Profile.png';
+import dataAnalyticsCert from './assets/Certificates/Data_Analytics_Essentials_certificate_elijahpaulalino27-gmail-com_ab825857-ccfb-4989-b6ae-ac1d57383b83.pdf';
+import ccnaWirelessCert from './assets/Certificates/CCNA-_Switching-_Routing-_and_Wireless_Essentials_certificate_elijahpaulalino27-gmail-com_a508c82d-e946-441d-99df-59e7c20fca2c.pdf';
+import ccnaIntroCert from './assets/Certificates/CCNA-_Introduction_to_Networks_certificate_elijahpaulalino27-gmail-com_b7969ffa-786f-4608-a479-32b505c96081.pdf';
+
+/* ──────────────────────────────────────────────
+   Credential Item Sub-Component
+   ────────────────────────────────────────────── */
+function CredentialItem({ name, date, certId, pdfLink, credlyLink, isNew }) {
+  return (
+    <li className="flex flex-col gap-2 p-3 border border-border/50 relative overflow-hidden" style={{ backgroundColor: 'rgba(8, 16, 24, 0.4)' }}>
+      <div className="flex justify-between items-start gap-2">
+        <h4 className="text-text-primary text-[12px] font-bold leading-snug">
+          {name}
+        </h4>
+        {isNew && <span className="retro-badge text-gold border-gold text-[8px] flex-shrink-0">NEW</span>}
+      </div>
+
+      <div className="flex flex-col gap-1 text-[10px] font-fira text-text-dim">
+        <div className="flex items-center gap-2">
+          <span className="text-teal">DATE:</span> {date}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-coral">ID:</span> <span className="tracking-widest">{certId}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 mt-1">
+        <MotionButton
+          glowColor="#118AB2"
+          className="retro-btn retro-btn-teal flex items-center justify-center py-1.5 px-3 text-[9px] flex-grow"
+          onClick={() => window.open(pdfLink, '_blank', 'noopener,noreferrer')}
+          title="View Local PDF"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          LOCAL PDF
+        </MotionButton>
+        <MotionButton
+          glowColor="#FFD166"
+          className="retro-btn retro-btn-gold flex items-center justify-center py-1.5 px-3 text-[9px] flex-grow"
+          onClick={() => window.open(credlyLink, '_blank', 'noopener,noreferrer')}
+          title="Verify on Credly"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1.5">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          CREDLY
+        </MotionButton>
+      </div>
+    </li>
+  );
+}
+
+/* ──────────────────────────────────────────────
+   Tiny helper: fake "typing" animation for the
+   terminal boot-up sequence.
+   ────────────────────────────────────────────── */
+function useTypedLines(lines, msPerLine = 400) {
+  const [visible, setVisible] = useState(0);
+  useEffect(() => {
+    if (visible >= lines.length) return;
+    const id = setTimeout(() => setVisible((v) => v + 1), msPerLine);
+    return () => clearTimeout(id);
+  }, [visible, lines.length, msPerLine]);
+  return lines.slice(0, visible);
+}
+
+/* ──────────────────────────────────────────────
+   Status indicator pip
+   ────────────────────────────────────────────── */
+function StatusDot({ color = 'mint' }) {
+  return <span className={`status-dot status-dot-${color} mr-2`} />;
+}
+
+/* ──────────────────────────────────────────────
+   Reusable panel header
+   ────────────────────────────────────────────── */
+function PanelHeader({ label, color = 'var(--color-teal)', children }) {
+  return (
+    <div className="retro-header" style={{ borderBottomColor: color }}>
+      <span
+        className="inline-block w-2 h-2"
+        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
+      />
+      <span style={{ color }}>{label}</span>
+      {children}
+    </div>
+  );
+}
+
+/* ==============================================================
+   MAIN APP COMPONENT
+   ============================================================== */
+export default function App() {
+  /* ── Flowise injection boilerplate ── */
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+    script.onload = () => {
+      if (window.Chatbot) {
+        window.Chatbot.init({
+          chatflowid: 'YOUR_CHATFLOW_ID',
+          apiHost: 'YOUR_FLOWISE_API_HOST',
+          chatflowConfig: {},
+          theme: {
+            button: { backgroundColor: '#06D6A0', iconColor: '#081018' },
+            chatWindow: {
+              showTitle: true,
+              title: 'AI SUPPORT UPLINK',
+              titleAvatarSrc: '',
+              welcomeMessage: 'SYSTEM ONLINE. How can I assist you, Operator?',
+              backgroundColor: '#040a04',
+              fontSize: 14,
+              botMessage: { backgroundColor: '#0a120a', textColor: '#06D6A0', showAvatar: false },
+              userMessage: { backgroundColor: '#118AB2', textColor: '#081018', showAvatar: false },
+              textInput: {
+                backgroundColor: '#040a04',
+                textColor: '#06D6A0',
+                placeholder: '> enter query...',
+                sendButtonColor: '#06D6A0',
+              },
+            },
+          },
+        });
+      }
+    };
+    // ⚠ Uncomment to inject the real Flowise widget:
+    // document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) document.body.removeChild(script);
+    };
+  }, []);
+
+  /* ── Scroll-driven hero content opacity ── */
+  const { scrollY } = useScroll();
+  const heroOpacity = useTransform(scrollY, [0, 600], [1, 0]);
+  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
+
+  /* ── Terminal boot-up lines ── */
+  const terminalLines = useTypedLines(
+    [
+      { text: 'UPLINK v3.1.7 // SECURE CHANNEL', dim: true },
+      { text: '[OK] Neural-language processor initialized.', dim: false },
+      { text: '[OK] Knowledge base loaded — 2,048 vectors.', dim: false },
+      { text: '[OK] Flowise endpoint handshake complete.', dim: false },
+      { text: '', dim: true },
+      { text: 'SYSTEM READY. Awaiting operator query...', dim: false },
+    ],
+    500,
+  );
+
+  /* ── Certifications data ── */
+  const certs = [
+    {
+      name: 'Data Analytics Essentials — Cisco',
+      date: '20 Jun 2026',
+      certId: 'ab825857-ccfb-4989-b6ae-ac1d57383b83',
+      pdfLink: dataAnalyticsCert,
+      credlyLink: 'https://www.credly.com/badges/88ebbf92-d8dd-4c57-ad51-56d27188636a',
+      isNew: true
+    },
+    {
+      name: 'CCNA: Switching, Routing, and Wireless Essentials',
+      date: '02 Jan 2025',
+      certId: 'a508c82d-e946-441d-99df-59e7c20fca2c',
+      pdfLink: ccnaWirelessCert,
+      credlyLink: 'https://www.credly.com/badges/baa4c882-23ed-469e-807b-672d8abc41c2',
+      isNew: false
+    },
+    {
+      name: 'CCNA: Introduction to Networks',
+      date: '06 Jul 2024',
+      certId: '67969ffa-786f-4608-a479-32b505c96081',
+      pdfLink: ccnaIntroCert,
+      credlyLink: 'https://www.credly.com/badges/252e915f-a633-40e8-8f3e-0ee1e068b36c',
+      isNew: false
+    },
+  ];
+
+  /* ────────────────────────────────
+     RENDER
+     ──────────────────────────────── */
+  return (
+    <>
+      {/* CRT overlay scanlines + vignette */}
+      <div className="crt-overlay" />
+      <div className="vignette" />
+
+      {/* ═══════════════════════════════════════════
+          GLOBAL PARALLAX BACKGROUND (fixed, behind everything)
+          ═══════════════════════════════════════════ */}
+      <BackgroundParallax />
+
+      {/* ═══════════════════════════════════════════
+          FIXED TOP CONTROL BAR
+          ═══════════════════════════════════════════ */}
+      <header className="fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div
+            className="retro-panel flex flex-col sm:flex-row items-center justify-between px-4 py-3 gap-3"
+            style={{
+              backgroundColor: 'rgba(8, 16, 24, 0.88)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+            }}
+          >
+            {/* Left — Branding */}
+            <div className="flex items-center gap-3">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="1" y="1" width="30" height="30" stroke="#118AB2" strokeWidth="2" />
+                <circle cx="16" cy="16" r="5" fill="#118AB2" />
+                <line x1="16" y1="1" x2="16" y2="11" stroke="#118AB2" strokeWidth="2" />
+                <line x1="16" y1="21" x2="16" y2="31" stroke="#118AB2" strokeWidth="2" />
+                <line x1="1" y1="16" x2="11" y2="16" stroke="#118AB2" strokeWidth="2" />
+                <line x1="21" y1="16" x2="31" y2="16" stroke="#118AB2" strokeWidth="2" />
+              </svg>
+              <span className="text-teal font-bold text-base tracking-[0.25em] uppercase text-glow-teal hidden sm:inline">
+                ELIJAHSYS
+              </span>
+            </div>
+
+            {/* Center — Navigation (MotionNavLink) */}
+            <nav id="main-nav" className="flex flex-wrap items-center gap-1">
+              <MotionNavLink href="#about" className="retro-nav-link">About</MotionNavLink>
+              <MotionNavLink href="#databanks" className="retro-nav-link">Databanks</MotionNavLink>
+              <MotionNavLink href="#credentials" className="retro-nav-link">Credentials</MotionNavLink>
+              <MotionNavLink href="#uplink" className="retro-nav-link">Uplink</MotionNavLink>
+            </nav>
+
+            {/* Right — Digital Readout */}
+            <div id="contact-readout" className="flex flex-col items-end text-[11px] font-fira tracking-wider">
+              <span className="text-text-muted">
+                <span className="text-coral">PHONE NO.</span> +63 9978646706
+              </span>
+              <span className="text-text-muted">
+                <span className="text-coral">EMAIL</span>elijahpaulalino27@gmail.com
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* ═══════════════════════════════════════════
+          MAIN SCROLLABLE CONTENT
+          Perspective container for 3D transforms
+          ═══════════════════════════════════════════ */}
+      <div className="relative z-10" style={{ perspective: '1000px' }}>
+
+        {/* ─── HERO SECTION (100vh, overlays parallax) ─── */}
+        <section id="about" className="relative w-full min-h-screen flex items-center justify-center pt-20">
+          <motion.div
+            className="max-w-5xl w-full mx-auto px-4"
+            style={{ y: heroY, opacity: heroOpacity }}
+          >
+            <div
+              className="retro-panel grid grid-cols-1 md:grid-cols-[260px_1fr] overflow-hidden"
+              style={{
+                backgroundColor: 'rgba(8, 16, 24, 0.82)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+              }}
+            >
+              {/* Left — Avatar Zone */}
+              <div className="flex flex-col items-center justify-center gap-4 p-8 border-b md:border-b-0 md:border-r-2 border-border">
+                <div
+                  className="w-36 h-48 border-2 border-teal flex items-center justify-center relative overflow-hidden"
+                  style={{ boxShadow: '0 0 20px rgba(17,138,178,0.2), inset 0 0 40px rgba(17,138,178,0.05)' }}
+                >
+                  <img src={profileImg} alt="Avatar" className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-[1.1] sepia-[0.2] hue-rotate-[160deg] opacity-80 mix-blend-screen" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-base-light to-base opacity-40 mix-blend-multiply pointer-events-none" />
+                  <div className="absolute bottom-2 left-0 right-0 z-20 text-center pointer-events-none">
+                    <span className="text-teal text-[9px] font-fira uppercase tracking-widest bg-base/80 px-2 py-1 inline-block border border-teal/40 backdrop-blur-sm">AUTHORIZED</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] uppercase font-fira tracking-widest text-text-muted">
+                  <StatusDot color="mint" />
+                  Status: Online
+                </div>
+              </div>
+
+              {/* Right — System Objective */}
+              <div className="p-8 flex flex-col justify-center gap-4">
+                <div>
+                  <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-1">
+                    // System Identification
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-teal text-glow-teal tracking-wide">
+                    Elijah Paul P. Aliño
+                  </h1>
+                  <div className="text-coral font-fira text-[12px] uppercase tracking-[0.2em] mt-1">
+                    IT Graduate · Software Developer · QA Specialist
+                  </div>
+                </div>
+
+                <div className="h-px bg-border w-full" />
+
+                <div>
+                  <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-3">
+                    // System Objective
+                  </div>
+                  <p className="text-text-primary leading-relaxed text-[13px]">
+                    Dedicated Information Technology graduate equipped with a robust foundation in software development, enterprise networking, and quality assurance.
+                  </p>
+                  <p className="text-text-muted leading-relaxed text-[13px] mt-3">
+                    Eager to leverage technical adaptability and analytical problem-solving skills in a dynamic IT role to optimize system performance and contribute to scalable tech solutions.
+                  </p>
+                </div>
+
+                {/* Mini status bar */}
+                <div
+                  className="retro-panel flex items-center justify-between px-4 py-2 text-[10px] font-fira uppercase tracking-wider mt-1"
+                  style={{ borderColor: 'var(--color-border)' }}
+                >
+                  <span className="text-text-dim flex items-center gap-2">
+                    <StatusDot color="mint" />
+                    All Systems Nominal
+                  </span>
+                  <span className="text-text-dim">
+                    SECTOR <span className="text-teal">7G</span> // CLEARANCE <span className="text-coral">L5</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Scroll-down hint */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
+            style={{ opacity: heroOpacity }}
+          >
+            <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-2">
+              Scroll to Explore
+            </div>
+            <motion.div
+              className="w-5 h-8 border-2 border-teal/40 mx-auto flex justify-center pt-1"
+              initial={{ opacity: 0.6 }}
+            >
+              <motion.div
+                className="w-1 h-2 bg-teal"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* ═══════════════════════════════════════════
+            DASHBOARD CONTENT
+            Semi-transparent bg lets parallax peek through
+            ═══════════════════════════════════════════ */}
+        <div style={{ backgroundColor: 'rgba(8, 16, 24, 0.92)' }}>
+          <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-8">
+
+            {/* ═══════════════════════════════════════════
+                DATABANKS — 3-Column Project Grid
+                ═══════════════════════════════════════════ */}
+            <section id="databanks">
+              <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-3 px-1">
+                // Project Databanks
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {/* ── Module 1: iTALA (Coral) ── */}
+                <MotionCard
+                  glowColor="#FF7F50"
+                  className="retro-panel retro-panel-glow-coral flex flex-col"
+                >
+                  <PanelHeader label="Module 01 — iTALA" color="var(--color-coral)" />
+                  <div className="p-5 flex flex-col flex-grow gap-4">
+                    <h3 className="text-coral font-bold text-[14px] leading-snug">
+                      iTALA Project: Administrative and Teacher-Oriented Grading System
+                    </h3>
+                    <div className="text-[11px] font-fira">
+                      <span className="text-text-dim">ROLE:</span>{' '}
+                      <span className="text-text-primary">Frontend & UI/UX Developer</span>
+                    </div>
+                    <div className="h-px bg-border" />
+                    <p className="text-text-muted text-[12px] leading-relaxed flex-grow">
+                      Designed complex interfaces with physical depth and tactile components, utilizing skeuomorphic and neumorphic design principles to create an intuitive grading experience for educators.
+                    </p>
+                    <MotionButton
+                      id="btn-itala"
+                      glowColor="#FF7F50"
+                      className="retro-btn retro-btn-coral w-full mt-auto"
+                      onClick={() => window.open('https://github.com/elijahpaul27/iTALA-App', '_blank', 'noopener,noreferrer')}
+                    >
+                      View Repository
+                    </MotionButton>
+                  </div>
+                </MotionCard>
+
+                {/* ── Module 2: IntervuAI (Teal) ── */}
+                <MotionCard
+                  glowColor="#118AB2"
+                  className="retro-panel retro-panel-glow-teal flex flex-col"
+                >
+                  <PanelHeader label="Module 02 — IntervuAI" color="var(--color-teal)" />
+                  <div className="p-5 flex flex-col flex-grow gap-4">
+                    <h3 className="text-teal font-bold text-[14px] leading-snug">
+                      IntervuAI: An AI-Powered Web-Based Coaching Platform for Job Interview Readiness
+                    </h3>
+                    <div className="text-[11px] font-fira">
+                      <span className="text-text-dim">ROLE:</span>{' '}
+                      <span className="text-text-primary">Project Manager & Backend Developer</span>
+                    </div>
+                    <div className="text-[11px] font-fira flex flex-wrap gap-2 mt-[-4px]">
+                      {['Python', 'Flask', 'MySQL', 'HTML', 'CSS'].map((t) => (
+                        <span key={t} className="retro-badge text-teal border-teal">{t}</span>
+                      ))}
+                    </div>
+                    <div className="h-px bg-border" />
+                    <p className="text-text-muted text-[12px] leading-relaxed flex-grow">
+                      Directed the project lifecycle and engineered the core backend architecture, integrating AI-driven interview simulation with real-time feedback analysis.
+                    </p>
+                    <MotionButton
+                      id="btn-intervuai"
+                      glowColor="#118AB2"
+                      className="retro-btn retro-btn-teal w-full mt-auto"
+                      onClick={() => window.open('https://www.intervuai.online/?fbclid=IwY2xjawUGPX1wZG9mBWV4dG4DYWVtAjEwAGJyaWQRMUJENUprZFRFZWhnWWV6NldzcnRjBmFwcF9pZBAyMjIwMzkxNzg4MjAwODkyAAEe33io3__036MHOk0-0ZoUzQarCQsCmDnJPmjBqtIreOTsfW8FYe-uxNoVm2U_aem_OToaYQiciO6SZDFh2igkng', '_blank', 'noopener,noreferrer')}
+                    >
+                      View Live Demo
+                    </MotionButton>
+                  </div>
+                </MotionCard>
+
+                {/* ── Module 3: Certifications (Gold) ── */}
+                <MotionCard
+                  id="credentials"
+                  glowColor="#FFD166"
+                  className="retro-panel retro-panel-glow-gold flex flex-col"
+                >
+                  <PanelHeader label="Module 03 — Credentials" color="var(--color-gold)">
+                    <span className="retro-badge text-gold border-gold ml-auto animate-pulse">NEW</span>
+                  </PanelHeader>
+                  <div className="p-5 flex flex-col flex-grow gap-4">
+                    <h3 className="text-gold font-bold text-[14px] leading-snug">
+                      Cisco Certifications
+                    </h3>
+                    <div className="h-px bg-border" />
+                    <ul className="flex flex-col gap-3 flex-grow overflow-y-auto">
+                      {certs.map((c) => (
+                        <CredentialItem key={c.certId} {...c} />
+                      ))}
+                    </ul>
+                  </div>
+                </MotionCard>
+
+              </div>
+            </section>
+
+            {/* ═══════════════════════════════════════════
+                LOWER DASHBOARD — 2-Column
+                ═══════════════════════════════════════════ */}
+            <section className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-5">
+
+              {/* ── Left: System Logs (Timeline) ── */}
+              <MotionCard
+                glowColor="#118AB2"
+                className="retro-panel retro-panel-glow-teal flex flex-col"
+              >
+                <PanelHeader label="System Logs" color="var(--color-teal)" />
+                <div className="p-6 flex flex-col gap-6">
+
+                  <MotionTimelineEntry className="timeline-entry">
+                    <div className="text-text-dim text-[10px] font-fira uppercase tracking-widest mb-1">
+                      June 2026
+                    </div>
+                    <h4 className="text-text-primary font-bold text-[13px] mb-1">
+                      Graduated: Bachelor of Science in Information Technology (BSIT)
+                    </h4>
+                    <p className="text-text-muted text-[12px] leading-relaxed">
+                      University of Cebu — Main Campus. Successfully completed the program with a strong emphasis on software development, networking, and IT systems management.
+                    </p>
+                  </MotionTimelineEntry>
+
+                  <MotionTimelineEntry className="timeline-entry">
+                    <div className="text-text-dim text-[10px] font-fira uppercase tracking-widest mb-1">
+                      Feb — May 2026
+                    </div>
+                    <h4 className="text-text-primary font-bold text-[13px] mb-1">
+                      Completed QA Internship at SKLoud Software Development Services
+                    </h4>
+                    <p className="text-text-muted text-[12px] leading-relaxed">
+                      Performed rigorous quality assurance and vulnerability assessments on staging environments. Developed robust testing protocols to ensure system stability and deployment readiness across multiple product lines.
+                    </p>
+                  </MotionTimelineEntry>
+
+                </div>
+              </MotionCard>
+
+              {/* ── Right: AI Support Uplink (Terminal) ── */}
+              <MotionCard
+                glowColor="#06D6A0"
+                className="retro-panel retro-panel-glow-mint flex flex-col flowise-retro-overrides"
+                id="uplink"
+              >
+                <PanelHeader label="AI Support Uplink" color="var(--color-mint)">
+                  <StatusDot color="mint" />
+                </PanelHeader>
+                <div className="terminal-container flex-grow p-5 flex flex-col min-h-[300px]">
+                  <div className="flex-grow overflow-y-auto relative z-10" style={{ fontSize: '15px' }}>
+                    <div className="text-mint opacity-50 mb-3">
+                      ┌──────────────────────────────────────┐
+                    </div>
+                    {terminalLines.map((line, i) => (
+                      <div key={i} className={`${line.dim ? 'opacity-40' : 'opacity-90'} ${line.text === '' ? 'h-3' : ''}`}>
+                        {line.text && (
+                          <>
+                            <span className="text-teal mr-2">{'>'}</span>
+                            {line.text}
+                          </>
+                        )}
+                      </div>
+                    ))}
+                    {terminalLines.length >= 6 && (
+                      <div className="mt-4 flex items-center">
+                        <span className="text-coral mr-2">{'>'}</span>
+                        <span className="animate-blink">█</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="border-t border-mint/20 pt-3 mt-4 text-[11px] font-fira opacity-40 relative z-10">
+                    Flowise RAG endpoint ready. See App.jsx to activate live chatbot widget.
+                  </div>
+                </div>
+              </MotionCard>
+
+            </section>
+
+            {/* ═══════════════════════════════════════════
+                FOOTER
+                ═══════════════════════════════════════════ */}
+            <footer className="text-center py-8 border-t-2 border-border">
+              <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.25em] mb-2">
+                // End of Transmission
+              </div>
+              <div className="text-text-muted text-[11px] font-fira">
+                © 2026 <span className="text-teal">Elijah Paul P. Aliño</span>. All systems reserved.
+              </div>
+              <div className="text-text-dim text-[10px] font-fira mt-2">
+                This portfolio is a specialized UI/UX demonstration utilizing a retrofuturistic CRT dashboard aesthetic.
+              </div>
+              <div className="flex justify-center gap-4 mt-3 text-[10px] font-fira">
+                <MotionNavLink className="text-text-dim hover:text-teal transition-colors uppercase" onClick={() => window.open('mailto:elijahpaulalino27@gmail.com')}>EMAIL</MotionNavLink>
+                <span className="text-border">|</span>
+                <MotionNavLink className="text-text-dim hover:text-teal transition-colors uppercase" onClick={() => window.open('https://github.com/elijahpaul27', '_blank', 'noopener,noreferrer')}>GITHUB</MotionNavLink>
+              </div>
+            </footer>
+
+          </div>
+        </div>
+
+      </div>
+    </>
+  );
+}
