@@ -34,6 +34,7 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
@@ -45,6 +46,7 @@
     font-size: 13px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   ::selection {
@@ -87,6 +89,12 @@
     );
     mix-blend-mode: multiply;
   }
+  /* Disable CRT scanlines on mobile to prevent GPU repaint blur */
+  @media (max-width: 767px) {
+    .crt-overlay {
+      display: none;
+    }
+  }
 
   /* --- Ambient glow behind page (vignette) --- */
   .vignette {
@@ -102,6 +110,16 @@
       transparent 50%,
       rgba(0, 0, 0, 0.5) 100%
     );
+  }
+  /* Reduce vignette intensity on mobile */
+  @media (max-width: 767px) {
+    .vignette {
+      background: radial-gradient(
+        ellipse at center,
+        transparent 60%,
+        rgba(0, 0, 0, 0.35) 100%
+      );
+    }
   }
 
   /* --- Dashboard Panel --- */
@@ -243,12 +261,18 @@
     text-transform: uppercase;
     letter-spacing: 0.15em;
     color: var(--color-text-muted);
-    padding: 8px 16px;
+    padding: 6px 8px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
     cursor: pointer;
     text-decoration: none;
     position: relative;
+    white-space: nowrap;
+  }
+  @media (min-width: 768px) {
+    .retro-nav-link {
+      padding: 8px 16px;
+    }
   }
   .retro-nav-link:hover {
     color: var(--color-teal);
@@ -314,6 +338,12 @@
     );
     pointer-events: none;
     z-index: 1;
+  }
+  /* Disable terminal scanlines on mobile to prevent scroll blur */
+  @media (max-width: 767px) {
+    .terminal-container::before {
+      display: none;
+    }
   }
 
   /* --- Badge / Tag --- */
@@ -428,4 +458,13 @@
   0%   { filter: brightness(1) saturate(1); }
   50%  { filter: brightness(1.15) saturate(1.2); }
   100% { filter: brightness(1) saturate(1); }
+}
+
+/* ── No-scrollbar utility (hide scrollbar but keep scroll) ── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

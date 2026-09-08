@@ -154,10 +154,22 @@ export default function App() {
     }
   };
 
-  /* ── Scroll-driven hero content opacity ── */
+  /* ── Mobile detection to disable GPU-heavy scroll animations ── */
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  /* ── Scroll-driven hero content opacity (desktop only) ── */
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 600], [1, 0]);
-  const heroY = useTransform(scrollY, [0, 600], [0, 80]);
+  const heroOpacityRaw = useTransform(scrollY, [0, 600], [1, 0]);
+  const heroYRaw = useTransform(scrollY, [0, 600], [0, 80]);
+  // On mobile, pin to static values — no per-frame recomposite
+  const heroOpacity = isMobile ? 1 : heroOpacityRaw;
+  const heroY = isMobile ? 0 : heroYRaw;
 
   /* ── Terminal boot-up lines ── */
   const terminalLines = useTypedLines(
@@ -217,19 +229,17 @@ export default function App() {
       {/* ═══════════════════════════════════════════
           FIXED TOP CONTROL BAR
           ═══════════════════════════════════════════ */}
-      <header className="fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+      <header className="fixed top-0 left-0 right-0 z-50 transform-gpu backface-hidden">
+        <div className="max-w-6xl mx-auto px-2 md:px-4 py-2 md:py-3">
           <div
-            className="retro-panel flex flex-col sm:flex-row items-center justify-between px-4 py-3 gap-3"
+            className="retro-panel flex items-center justify-between px-3 py-2 md:px-4 md:py-3 gap-2 md:gap-3"
             style={{
-              backgroundColor: 'rgba(8, 16, 24, 0.88)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(5, 11, 20, 0.97)',
             }}
           >
             {/* Left — Branding */}
-            <div className="flex items-center gap-3">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none" className="md:w-8 md:h-8" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <rect x="1" y="1" width="30" height="30" stroke="#118AB2" strokeWidth="2" />
                 <circle cx="16" cy="16" r="5" fill="#118AB2" />
                 <line x1="16" y1="1" x2="16" y2="11" stroke="#118AB2" strokeWidth="2" />
@@ -237,26 +247,26 @@ export default function App() {
                 <line x1="1" y1="16" x2="11" y2="16" stroke="#118AB2" strokeWidth="2" />
                 <line x1="21" y1="16" x2="31" y2="16" stroke="#118AB2" strokeWidth="2" />
               </svg>
-              <span className="text-teal font-bold text-base tracking-[0.25em] uppercase text-glow-teal hidden sm:inline">
+              <span className="text-teal font-bold text-sm md:text-base tracking-[0.25em] uppercase text-glow-teal hidden sm:inline">
                 ELIJAHSYS
               </span>
             </div>
 
-            {/* Center — Navigation (MotionNavLink) */}
-            <nav id="main-nav" className="flex flex-wrap items-center gap-1">
-              <MotionNavLink href="#about" className="retro-nav-link">About</MotionNavLink>
-              <MotionNavLink href="#databanks" className="retro-nav-link">Databanks</MotionNavLink>
-              <MotionNavLink href="#credentials" className="retro-nav-link">Credentials</MotionNavLink>
-              <MotionNavLink href="#uplink" className="retro-nav-link">Uplink</MotionNavLink>
+            {/* Center — Navigation (Compact Grid on Mobile) */}
+            <nav id="main-nav" className="grid grid-cols-4 w-full md:w-auto md:flex gap-1 md:gap-2 flex-grow md:flex-grow-0 md:justify-center">
+              <MotionNavLink href="#about" className="retro-nav-link min-h-[44px] flex items-center justify-center text-[10px] md:text-xs">About</MotionNavLink>
+              <MotionNavLink href="#databanks" className="retro-nav-link min-h-[44px] flex items-center justify-center text-[10px] md:text-xs">Data</MotionNavLink>
+              <MotionNavLink href="#credentials" className="retro-nav-link min-h-[44px] flex items-center justify-center text-[10px] md:text-xs">Creds</MotionNavLink>
+              <MotionNavLink href="#uplink" className="retro-nav-link min-h-[44px] flex items-center justify-center text-[10px] md:text-xs">Uplink</MotionNavLink>
             </nav>
 
-            {/* Right — Digital Readout */}
-            <div id="contact-readout" className="flex flex-col items-end text-[11px] font-fira tracking-wider">
+            {/* Right — Digital Readout (Hidden on Mobile) */}
+            <div id="contact-readout" className="hidden md:flex flex-col items-end text-[11px] font-fira tracking-wider flex-shrink-0">
               <span className="text-text-muted">
                 <span className="text-coral">PHONE NO.</span> +63 9978646706
               </span>
               <span className="text-text-muted">
-                <span className="text-coral">EMAIL</span>elijahpaulalino27@gmail.com
+                <span className="text-coral">EMAIL</span> elijahpaulalino27@gmail.com
               </span>
             </div>
           </div>
@@ -265,22 +275,20 @@ export default function App() {
 
       {/* ═══════════════════════════════════════════
           MAIN SCROLLABLE CONTENT
-          Perspective container for 3D transforms
+          No 3D perspective on mobile to prevent GPU repaint blur
           ═══════════════════════════════════════════ */}
-      <div className="relative z-10" style={{ perspective: '1000px' }}>
+      <div className="relative z-10 w-full overflow-x-hidden">
 
-        {/* ─── HERO SECTION (100vh, overlays parallax) ─── */}
-        <section id="about" className="relative w-full min-h-screen flex items-center justify-center pt-20">
+        {/* ─── HERO / ABOUT SECTION ─── */}
+        <section id="about" className="relative w-full min-h-0 md:min-h-[calc(100dvh-4rem)] flex flex-col justify-center pt-20 md:pt-24 pb-8 md:pb-12">
           <motion.div
             className="max-w-5xl w-full mx-auto px-4"
             style={{ y: heroY, opacity: heroOpacity }}
           >
             <div
-              className="retro-panel grid grid-cols-1 md:grid-cols-[260px_1fr] overflow-hidden"
+              className="retro-panel flex flex-col md:grid md:grid-cols-[260px_1fr] overflow-visible transform-gpu antialiased [text-rendering:optimizeLegibility]"
               style={{
-                backgroundColor: 'rgba(8, 16, 24, 0.82)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
+                backgroundColor: '#050b14',
               }}
             >
               {/* Left — Avatar Zone */}
@@ -289,10 +297,10 @@ export default function App() {
                   className="w-36 h-48 border-2 border-teal flex items-center justify-center relative overflow-hidden"
                   style={{ boxShadow: '0 0 20px rgba(17,138,178,0.2), inset 0 0 40px rgba(17,138,178,0.05)' }}
                 >
-                  <img src={profileImg} alt="Avatar" className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-[1.1] sepia-[0.2] hue-rotate-[160deg] opacity-80 mix-blend-screen" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-base-light to-base opacity-40 mix-blend-multiply pointer-events-none" />
+                  <img src={profileImg} alt="Avatar" className="absolute inset-0 w-full h-full object-cover filter grayscale contrast-[1.1] sepia-[0.2] hue-rotate-[160deg] opacity-80" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-base-light to-base opacity-40 pointer-events-none" />
                   <div className="absolute bottom-2 left-0 right-0 z-20 text-center pointer-events-none">
-                    <span className="text-teal text-[9px] font-fira uppercase tracking-widest bg-base/80 px-2 py-1 inline-block border border-teal/40 backdrop-blur-sm">AUTHORIZED</span>
+                    <span className="text-teal text-[9px] font-fira uppercase tracking-widest bg-base/90 px-2 py-1 inline-block border border-teal/40">AUTHORIZED</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-[10px] uppercase font-fira tracking-widest text-text-muted">
@@ -302,12 +310,12 @@ export default function App() {
               </div>
 
               {/* Right — System Objective */}
-              <div className="p-8 flex flex-col justify-center gap-4">
+              <div className="p-5 md:p-8 flex flex-col justify-center gap-4 transform-gpu [transform:translateZ(0)] [backface-visibility:hidden] will-change-transform">
                 <div>
                   <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-1">
                     // System Identification
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-teal text-glow-teal tracking-wide">
+                  <h1 className="text-2xl md:text-3xl font-bold text-teal text-glow-teal tracking-wide antialiased [transform:translateZ(0)] [backface-visibility:hidden]">
                     Elijah Paul P. Aliño
                   </h1>
                   <div className="text-coral font-fira text-[12px] uppercase tracking-[0.2em] mt-1">
@@ -317,14 +325,14 @@ export default function App() {
 
                 <div className="h-px bg-border w-full" />
 
-                <div>
+                <div className="[transform:translateZ(0)] [backface-visibility:hidden]">
                   <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-3">
                     // System Objective
                   </div>
-                  <p className="text-text-primary leading-relaxed text-[13px]">
+                  <p className="text-text-primary leading-relaxed text-[13px] antialiased [transform:translateZ(0)] [backface-visibility:hidden]">
                     Dedicated Information Technology graduate equipped with a robust foundation in software development, enterprise networking, and quality assurance.
                   </p>
-                  <p className="text-text-muted leading-relaxed text-[13px] mt-3">
+                  <p className="text-text-muted leading-relaxed text-[13px] mt-3 antialiased [transform:translateZ(0)] [backface-visibility:hidden]">
                     Eager to leverage technical adaptability and analytical problem-solving skills in a dynamic IT role to optimize system performance and contribute to scalable tech solutions.
                   </p>
                 </div>
@@ -346,9 +354,9 @@ export default function App() {
             </div>
           </motion.div>
 
-          {/* Scroll-down hint */}
+          {/* Scroll-down hint (desktop only) */}
           <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center hidden md:block"
             style={{ opacity: heroOpacity }}
           >
             <div className="text-text-dim text-[10px] font-fira uppercase tracking-[0.3em] mb-2">
@@ -369,9 +377,9 @@ export default function App() {
 
         {/* ═══════════════════════════════════════════
             DASHBOARD CONTENT
-            Semi-transparent bg lets parallax peek through
+            Fully opaque bg — no transparency compositing on mobile
             ═══════════════════════════════════════════ */}
-        <div style={{ backgroundColor: 'rgba(8, 16, 24, 0.92)' }}>
+        <div style={{ backgroundColor: '#060e18' }}>
           <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col gap-8">
 
             {/* ═══════════════════════════════════════════
@@ -472,9 +480,9 @@ export default function App() {
             </section>
 
             {/* ═══════════════════════════════════════════
-                LOWER DASHBOARD — 2-Column
+                LOWER DASHBOARD — 2-Column Desktop / Stacked Mobile
                 ═══════════════════════════════════════════ */}
-            <section className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-5">
+            <section className="flex flex-col lg:grid lg:grid-cols-[1.4fr_1fr] gap-5">
 
               {/* ── Left: System Logs (Timeline) ── */}
               <MotionCard
@@ -520,20 +528,15 @@ export default function App() {
                 <PanelHeader label="AI Support Uplink" color="var(--color-mint)">
                   <StatusDot color={isTransmitting ? 'coral' : 'mint'} />
                 </PanelHeader>
-                <div className="terminal-container flex-grow p-5 flex flex-col min-h-[400px]">
-                  
+                <div className="terminal-container flex-grow p-4 md:p-5 flex flex-col h-[65vh] md:h-[500px] lg:h-auto min-h-[400px]">
+
                   {/* Chat History Display */}
-                  <div 
+                  <div
                     ref={chatScrollRef}
-                    className="flex-grow overflow-y-auto relative z-10 pr-2 custom-scrollbar" 
-                    style={{ fontSize: '14px', scrollBehavior: 'smooth' }}
+                    className="flex-grow overflow-y-auto relative z-10 pr-2 custom-scrollbar break-words whitespace-pre-wrap text-sm md:text-[15px] transform-gpu backface-hidden antialiased [text-rendering:optimizeLegibility]"
+                    style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
                   >
-                    <div className="text-mint opacity-50 mb-3">
-                      ┌──────────────────────────────────────┐<br/>
-                      │ FLOWISE SECURE PREDICTION ENDPOINT   │<br/>
-                      └──────────────────────────────────────┘
-                    </div>
-                    
+
                     {/* Boot Logs */}
                     {terminalLines.map((line, i) => (
                       <div key={i} className={`${line.dim ? 'opacity-40' : 'opacity-90'} ${line.text === '' ? 'h-3' : 'mb-1'}`}>
@@ -561,15 +564,15 @@ export default function App() {
                         {'> [TRANSMITTING]...'}
                       </div>
                     )}
-                    
+
                     {/* Spacer for bottom padding */}
                     <div className="h-4"></div>
                   </div>
 
                   {/* Input Form */}
-                  <form 
-                    onSubmit={handleQuerySubmit} 
-                    className="border-t border-mint/30 pt-3 mt-4 relative z-10 flex items-center gap-2"
+                  <form
+                    onSubmit={handleQuerySubmit}
+                    className="border-t border-mint/30 pt-3 mt-4 relative z-10 flex items-center gap-2 pb-2 md:pb-0"
                   >
                     <span className="text-teal">{'>'}</span>
                     <input
@@ -578,15 +581,15 @@ export default function App() {
                       onChange={(e) => setInputQuery(e.target.value)}
                       disabled={isTransmitting || terminalLines.length < 6}
                       placeholder="enter query..."
-                      className="flex-grow bg-transparent border-none outline-none text-mint placeholder:text-mint/30 font-fira disabled:opacity-50"
+                      className="flex-grow bg-transparent border-none outline-none text-mint placeholder:text-mint/30 font-fira disabled:opacity-50 min-h-[44px] text-base"
                       autoComplete="off"
                     />
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={isTransmitting || !inputQuery.trim() || terminalLines.length < 6}
-                      className="text-mint hover:text-teal disabled:opacity-30 transition-colors"
+                      className="text-mint hover:text-teal disabled:opacity-30 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"></line>
                         <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                       </svg>
@@ -614,6 +617,8 @@ export default function App() {
                 <MotionNavLink className="text-text-dim hover:text-teal transition-colors uppercase" onClick={() => window.open('mailto:elijahpaulalino27@gmail.com')}>EMAIL</MotionNavLink>
                 <span className="text-border">|</span>
                 <MotionNavLink className="text-text-dim hover:text-teal transition-colors uppercase" onClick={() => window.open('https://github.com/elijahpaul27', '_blank', 'noopener,noreferrer')}>GITHUB</MotionNavLink>
+                <span className="text-border">|</span>
+                <a href="tel:+639978646706" className="text-text-dim hover:text-teal transition-colors uppercase"> 📞 (+63) 997 864 6706</a>
               </div>
             </footer>
 
