@@ -247,7 +247,7 @@ export default function App() {
                 <line x1="1" y1="16" x2="11" y2="16" stroke="#118AB2" strokeWidth="2" />
                 <line x1="21" y1="16" x2="31" y2="16" stroke="#118AB2" strokeWidth="2" />
               </svg>
-              <span className="text-teal font-bold text-sm md:text-base tracking-[0.25em] uppercase text-glow-teal hidden sm:inline">
+              <span className="text-coral font-bold text-sm md:text-base tracking-[0.25em] uppercase text-glow-teal hidden sm:inline">
                 ELIJAHSYS
               </span>
             </div>
