@@ -13,6 +13,7 @@ import profileImg from './assets/Profile.png';
 import dataAnalyticsCert from './assets/Certificates/Data_Analytics_Essentials_certificate_elijahpaulalino27-gmail-com_ab825857-ccfb-4989-b6ae-ac1d57383b83.pdf';
 import ccnaWirelessCert from './assets/Certificates/CCNA-_Switching-_Routing-_and_Wireless_Essentials_certificate_elijahpaulalino27-gmail-com_a508c82d-e946-441d-99df-59e7c20fca2c.pdf';
 import ccnaIntroCert from './assets/Certificates/CCNA-_Introduction_to_Networks_certificate_elijahpaulalino27-gmail-com_b7969ffa-786f-4608-a479-32b505c96081.pdf';
+import informationTechnologyFundamentalsCert from './assets/Certificates/Information_Technology_Fundamentals_certificate_elijahpaulalino27-gmail-com_27b0f6b5-2628-44b6-8b1c-7ef729cc0e57.pdf';
 
 /* ──────────────────────────────────────────────
    Credential Item Sub-Component
@@ -210,6 +211,14 @@ export default function App() {
       credlyLink: 'https://www.credly.com/badges/252e915f-a633-40e8-8f3e-0ee1e068b36c',
       isNew: false
     },
+    {
+      name: 'Information Technology Fundamentals - IBM',
+      date: '05 Oct 2026',
+      credlyLink: 'https://www.credly.com/badges/8ff4d914-1017-42c0-b03a-0ad6a0c1b566',
+      pdfLink: informationTechnologyFundamentalsCert,
+      certId: '8ff4d914-1017-42c0-b03a-0ad6a0c1b566',
+      isNew: true
+    }
   ];
 
   /* ────────────────────────────────
@@ -465,7 +474,7 @@ export default function App() {
                   </PanelHeader>
                   <div className="p-5 flex flex-col flex-grow gap-4">
                     <h3 className="text-gold font-bold text-[14px] leading-snug">
-                      Cisco Certifications
+                      Cisco & IBM Skillsbuild Certifications
                     </h3>
                     <div className="h-px bg-border" />
                     <ul className="flex flex-col gap-3 flex-grow overflow-y-auto">
